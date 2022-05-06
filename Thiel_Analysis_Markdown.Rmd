@@ -10,6 +10,7 @@ library(ggplot2)
 library(knitr)
 library(kableExtra)
 library(tidyr)
+library(data.table)
 # library(foreign)
 # library(multcomp)
 # library(broom)
@@ -110,3 +111,11 @@ ggplot(data=Preparedness, aes(x=key, y = value, fill = key)) +
 ```
 
 There is a significant effect on preparedness (*t* = 11.83, *p* < 0.001).
+
+
+```{r, echo=FALSE}
+Survaydt = fread("Thiel cadaver pelvic exam Survey Analysis.csv")
+
+
+```
+
