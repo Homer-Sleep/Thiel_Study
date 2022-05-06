@@ -1,0 +1,65 @@
+---
+title: "Pelvic_Exam_Analysis"
+output: pdf_document
+---
+```{r, echo=FALSE, message=FALSE}
+library(plyr)
+# library(papeR)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+library(tidyr)
+library(data.table)
+# library(foreign)
+# library(multcomp)
+# library(broom)
+# library(nlme)
+library(tidyverse)
+# library(stargazer)
+# library(reshape2)
+# library(rmarkdown)
+library(psych)
+# library(RColorBrewer)
+# library(minpack.lm)
+# library(numDeriv)
+# # library(mosaic)
+# library(pracma)
+# library(formattable)
+# library(lme4)
+# library(sjPlot)
+# library(lsmeans)
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+1. I have previous experience performing female pelvic exams on live patients
+
+
+
+### Anaysis Ideas
+group by which type of training (Thiel or task trainer) preferred, look for group differences
+
+### to do
+make 0's = NA, did not answer 
+remove last row of all NA's
+
+
+```{r, echo=FALSE}
+#import csv saved from raw data sheet in xlsx file of same name
+Survey.dt = fread("Thiel cadaver pelvic exam Survey Analysis.csv")
+Survey.dt = Survey.dt[complete.cases(Survey.dt),] # removed last row of NA's
+# New names to reflect questions
+new_colnames = c('ID', 'Q1_Exp.Live.Patient', 'Q2_Exp.Simulation', 'Q3_Pre.Feel.Prepared', 'Q4_Pre.Confidence',
+                 'Q5_Simulation.Requirement', 'Q6_Simulation.Con.Requirement', 'Q7_Learned.PE', 'Q8_Skills.Retained.Utlized',
+                 'Q9_Post.More.Confident', 'Q10_Thiel.Realism', 'Q11_Task.Trainer.Realism', 'Q12_Type.Gained.Knowledge', 
+                 'Q13_Type.Feel.Prepared', 'Q14_Type.Feel.Confident')
+setnames(Survey.dt, new_colnames)
+summary(Survey.dt)
+# Set 0's to NA's
+Survey.dt[Survey.dt == 0]
+
+
+```
