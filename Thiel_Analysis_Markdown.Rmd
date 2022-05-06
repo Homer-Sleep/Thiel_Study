@@ -115,6 +115,9 @@ There is a significant effect on preparedness (*t* = 11.83, *p* < 0.001).
 
 ```{r, echo=FALSE}
 Survaydt = fread("Thiel cadaver pelvic exam Survey Analysis.csv")
+colnames(Survaydt)
+new_colnames = c('Exp.Live.Patient', 'Exp.')
+setnames()
 
 
 ```

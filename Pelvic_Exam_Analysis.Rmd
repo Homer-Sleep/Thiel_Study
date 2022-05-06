@@ -14,7 +14,7 @@ library(data.table)
 # library(foreign)
 # library(multcomp)
 # library(broom)
-# library(nlme)
+ library(nlme)
 library(tidyverse)
 # library(stargazer)
 # library(reshape2)
@@ -113,11 +113,72 @@ p = ggplot(Confidence.dt, aes(x=Group, y=Score,  fill = Group)) +
     annotate('text', x = 2, y = -.05,  fontface = 'bold', label = means[Group == 'Post']$Score)+
     annotate('text', x = 1.5, y = -.05,  fontface = 'bold', label = print('* p < 0.001'))
     
-   p = p + ylab('Disagree     --     Agree')
-
-  p = p + plot_finish
-  p
-  
-
+p = p + ylab('Disagree     --     Agree')
+p = p + plot_finish
+p
 ```
 
+### Regress on Post Confidence
+See what variables predict post confidence
+
+```{r}
+
+Confidence.lm = lme(Q9_Post.More.Confident ~ Q1_Exp.Live.Patient+ Q2_Exp.Simulation+ Q3_Pre.Feel.Prepared+ Q4_Pre.Confidence+ 
+                      Q5_Simulation.Requirement+ Q6_Simulation.Con.Requirement + Q7_Learned.PE + Q8_Skills.Retained.Utlized +
+                      Q10_Thiel.Realism + Q11_Task.Trainer.Realism + Q12_Type.Gained.Knowledge + Q13_Type.Feel.Prepared + 
+                      Q14_Type.Feel.Confident, random =~ 1|ID, data = Survey.dt[complete.cases(Survey.dt)])
+# make table output:
+tTable = summary(Confidence.lm)[['tTable']] # retrieve tTable from linear model lme()
+
+  print(kable(tTable, format = "html", escape = F)%>% # , caption = paste0('<b>',Modelname,'<b>')
+  kable_styling( full_width = F)%>%
+  column_spec(1,color="black", bold=T)%>%
+  row_spec(0:nrow(tTable),color = "black"))
+```
+
+## Pre and Post differences Grouped by type of training preferred 
+
+```{r}
+# Confidence data.table
+Type.dt = data.table(Group = c(rep('Pre', nrow(Survey.dt)), rep('Post', nrow(Survey.dt))), 
+                           Score = c(Survey.dt$Q4_Pre.Confidence, Survey.dt$Q9_Post.More.Confident), 
+                           Type = as.character(rep(Survey.dt$Q14_Type.Feel.Confident, 2)))
+Type.dt$Group = factor(Type.dt$Group, levels = c('Pre', 'Post'))
+type.change = Type.dt$Type == '1'
+Type.dt[type.change,]$Type = 'Thiel'
+type.change = Type.dt$Type == '2'
+Type.dt[type.change,]$Type = 'Task.Trainer'
+type.change = Type.dt$Type == '3'
+Type.dt[type.change,]$Type = 'Neither'
+Type.dt$Type = factor(Type.dt$Type, levels = c('Thiel', 'Task.Trainer', 'Neither'))
+#merge group and type to make one group col.
+Type.dt$Group = with(Type.dt, interaction(Group, Type))
+
+# Means
+  means = data.table(aggregate(Score ~ Group , Type.dt, mean))
+  means$Score = round(means$Score, digits = 2)
+# n of each group
+  means$N = aggregate(Score ~ Group, Type.dt, length)$Score
+####################################################################################################################################
+#t.test
+Thiel.Results = t.test(Type.dt[Group == 'Pre' & Type == 'Thiel']$Score, Type.dt[Group == 'Post' & Type == 'Thiel']$Score, paired = TRUE)
+#view results
+Thiel.Results
+
+TT.Results = t.test(Type.dt[Group == 'Pre' & Type == 'Task.Trainer']$Score, Type.dt[Group == 'Post' & Type == 'Task.Trainer']$Score, paired = TRUE)
+#view results
+TT.Results 
+
+#plot with results:
+p = ggplot(Confidence.dt, aes(x=Group, y=Score,  fill = Group)) +
+    geom_boxplot() +
+      scale_fill_manual(values = c('navyblue', 'gold'))+
+    labs(title = paste('Confident Performing Pelvic Exam - Pre and Post'))+ 
+    annotate('text', x = 1, y = -.05,  fontface = 'bold', label = means[Group == 'Pre']$Score)+
+    annotate('text', x = 2, y = -.05,  fontface = 'bold', label = means[Group == 'Post']$Score)+
+    annotate('text', x = 1.5, y = -.05,  fontface = 'bold', label = print('* p < 0.001'))
+    
+p = p + ylab('Disagree     --     Agree')
+p = p + plot_finish
+p
+```
