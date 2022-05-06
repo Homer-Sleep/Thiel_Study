@@ -30,24 +30,46 @@ library(psych)
 # library(sjPlot)
 # library(lsmeans)
 
+options(scipen = 9999) # suppress scientific notation
+
+plot_finish = theme_classic()+
+  theme(plot.title = element_text(color= 'black',face='bold',size=18))+
+   theme(axis.title.x = element_text(color= 'black',face='bold',size=18),
+        axis.text.x = element_text(color= 'black',face='bold',size=18))+
+  theme(axis.title.y = element_text(color= 'black',face='bold',size=18),
+        axis.text.y = element_text(color= 'black',face='bold',size=18))+
+ theme(legend.text = element_text( size = 18, face = "bold"))+
+theme(legend.position="none")+
+    theme(# adjust X-axis labels; also adjust their position using margin (acts like a bounding box)
+          # using margin was needed because of the inwards placement of ticks
+          # http://stackoverflow.com/questions/26367296/how-do-i-make-my-axis-ticks-face-inwards-in-ggplot2
+          axis.text.x = element_text( margin = unit(c(t = 2.5, r = 0, b = 0, l = 0), "mm")),
+          # adjust Y-axis labels
+          axis.text.y = element_text( margin = unit(c(t = 0, r = 2.5, b = 0, l = 0), "mm")),
+          # length of tick marks - negative sign places ticks inwards
+          axis.ticks.length = unit(-1.4, "mm"),
+          # width of tick marks in mm
+          axis.ticks = element_line(size = .8))
+
 ```
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 1. I have previous experience performing female pelvic exams on live patients
 
 
 
 ### Anaysis Ideas
-group by which type of training (Thiel or task trainer) preferred, look for group differences
+Look at Pre and post, Pre (3, 4) Post (9)
+
+#9 I feel more confident performing a PE ona  live patient - Seems to be the most important outcome. Regress to find predicting variables? 
+
+group by which type of training (Thiel or task trainer) preferred, look for group differences, PCA within each group
 
 ### to do
-make 0's = NA, did not answer 
-remove last row of all NA's
 
-
-```{r, echo=FALSE}
+```{r}
 #import csv saved from raw data sheet in xlsx file of same name
 Survey.dt = fread("Thiel cadaver pelvic exam Survey Analysis.csv")
 Survey.dt = Survey.dt[complete.cases(Survey.dt),] # removed last row of NA's
@@ -59,7 +81,43 @@ new_colnames = c('ID', 'Q1_Exp.Live.Patient', 'Q2_Exp.Simulation', 'Q3_Pre.Feel.
 setnames(Survey.dt, new_colnames)
 summary(Survey.dt)
 # Set 0's to NA's
-Survey.dt[Survey.dt == 0]
+Zeros = Survey.dt == 0
+Survey.dt[Zeros] = NA
+```
 
+## Pre and Post differences
+
+```{r}
+# Confidence data.table
+Confidence.dt = data.table(Group = c(rep('Pre', nrow(Survey.dt)), rep('Post', nrow(Survey.dt))), 
+                           Score = c(Survey.dt$Q4_Pre.Confidence, Survey.dt$Q9_Post.More.Confident))
+Confidence.dt$Group = factor(Confidence.dt$Group, levels = c('Pre', 'Post'))
+# Means
+  means = data.table(aggregate(Score ~ Group, Confidence.dt, mean))
+  # change order
+  means = means[c(2,1)]
+  means$Score = round(means$Score, digits = 2)
+
+#t.test
+Results = t.test(Confidence.dt[Group == 'Pre']$Score, Confidence.dt[Group == 'Post']$Score, paired = TRUE)
+#view results
+Results
+
+
+#plot with results:
+p = ggplot(Confidence.dt, aes(x=Group, y=Score,  fill = Group)) +
+    geom_boxplot() +
+      scale_fill_manual(values = c('navyblue', 'gold'))+
+    labs(title = paste('Confident Performing Pelvic Exam - Pre and Post'))+ 
+    annotate('text', x = 1, y = -.05,  fontface = 'bold', label = means[Group == 'Pre']$Score)+
+    annotate('text', x = 2, y = -.05,  fontface = 'bold', label = means[Group == 'Post']$Score)+
+    annotate('text', x = 1.5, y = -.05,  fontface = 'bold', label = print('* p < 0.001'))
+    
+   p = p + ylab('Disagree     --     Agree')
+
+  p = p + plot_finish
+  p
+  
 
 ```
+
