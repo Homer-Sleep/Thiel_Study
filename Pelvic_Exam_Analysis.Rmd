@@ -176,12 +176,31 @@ p
 ```{r}
 Survey.dt = Survey.dt[complete.cases(Survey.dt),]
 summary(Survey.dt)
-Results = prcomp(Survey.dt[-c(1,62),-1], scale = TRUE) # removed 1 and 62 as outliers
+#remove excess text from col names to clean up PCA biplot:
+Survey.dt.Num = Survey.dt
+# colnames(Survey.dt.Num)
+new_colnames = c('ID', 'Q1', 'Q2', 'Q3', 'Q4',
+                 'Q5', 'Q6', 'Q7', 'Q8',
+                 'Q9', 'Q10', 'Q11', 'Q12', 
+                 'Q13', 'Q14')
+setnames(Survey.dt.Num, new_colnames)
+
+
+Results = prcomp(Survey.dt.Num[-c(1,62),-1], scale = TRUE) # removed 1 and 62 as outliers
 Results$rotation = -1 * Results$rotation
 Results$x = -1 * Results$x
 
 biplot(Results, scale = 0)
 ```
+
+Note: Participants 1 and 62 were removed as outliers. 
+Interpretation: 
+Questions 1 (previous experience of pelvic exam on live patient), 
+3 (felt prepared to perform the female pelvic exam required in the upcoming third-year rotations, prior to the Doctoring I course session) 
+and 4 (I felt confident performing a female pelvic exam prior to participating in this Doctoring I course session.) are correlated together. This makes sense as previous experience with a live patient prepared them and gave them confidence. 
+
+
+
 
 ### Regress on Post Confidence
 See what variables predict post confidence
