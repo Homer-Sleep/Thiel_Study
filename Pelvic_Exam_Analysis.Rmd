@@ -29,6 +29,9 @@ library(psych)
 # library(lme4)
 # library(sjPlot)
 # library(lsmeans)
+library(factoextra)
+
+
 
 options(scipen = 9999) # suppress scientific notation
 
@@ -174,8 +177,9 @@ p
 
 ### PCA of variables
 ```{r}
+################### Consider making a difference measure of confidence post - pre, 4 and 9, or just 9 considering the wording. 
 Survey.dt = Survey.dt[complete.cases(Survey.dt),]
-summary(Survey.dt)
+# summary(Survey.dt)
 #remove excess text from col names to clean up PCA biplot:
 Survey.dt.Num = Survey.dt
 # colnames(Survey.dt.Num)
@@ -186,18 +190,36 @@ new_colnames = c('ID', 'Q1', 'Q2', 'Q3', 'Q4',
 setnames(Survey.dt.Num, new_colnames)
 
 
-Results = prcomp(Survey.dt.Num[-c(1,62),-1], scale = TRUE) # removed 1 and 62 as outliers
+Results = prcomp(Survey.dt.Num[-c(1,62),-1], center = TRUE, scale = TRUE) # removed 1 and 62 as did not prefer a type
 Results$rotation = -1 * Results$rotation
 Results$x = -1 * Results$x
-
-biplot(Results, scale = 0)
+summary(Results)
+p = fviz_pca_biplot(Results, repel=TRUE,  pointshape=21, col.var="red", arrowsize=0.6, labelsize=5)
+p
 ```
 
-Note: Participants 1 and 62 were removed as outliers. 
+Principal Component Analysis:
+This approach looks at different components that explain the variance in the data. The first component explains the most amount of variance by spreading the data across a single line, x-axis, with the second component (2nd most amount of variance) on the y-axis. We see that the first component (PC1) explains 25% of the variance and PC2 explains 13%. 
+
 Interpretation: 
-Questions 1 (previous experience of pelvic exam on live patient), 
-3 (felt prepared to perform the female pelvic exam required in the upcoming third-year rotations, prior to the Doctoring I course session) 
-and 4 (I felt confident performing a female pelvic exam prior to participating in this Doctoring I course session.) are correlated together. This makes sense as previous experience with a live patient prepared them and gave them confidence. 
+These questions are grouped together: 
+
+At seven o'clock, negative for PC1 and PC2
+12 - I gained more knowledge about female pelvic exams using (thiel, TT, neither)
+13 - I feel most prepared to perform a female pelvic exam after practicing on 
+14 - I feel most confident to perform a female pelvic exam after practicing on
+
+These questions are grouped together as they show preference, mostly for the thiel surgical donor
+
+At five o'clock, positive for PC1 and negative for PC2
+1 - I have previous experience of pelvic exam on live patient
+3 - felt prepared to perform the female pelvic exam required in the upcoming third-year rotations, prior to the Doctoring I course session
+4 - I felt confident performing a female pelvic exam prior to participating in this Doctoring I course session.
+and some extent 2 - I have previous experience performing simulated female pelvic exams (thiel or TT). 
+Shows that previous experience with a live patient was grouped with being prepared and having confidence. 
+
+
+
 
 
 
