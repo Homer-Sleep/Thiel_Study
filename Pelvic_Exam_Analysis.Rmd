@@ -194,6 +194,7 @@ Results = prcomp(Survey.dt.Num[-c(1,62),-1], center = TRUE, scale = TRUE) # remo
 Results$rotation = -1 * Results$rotation
 Results$x = -1 * Results$x
 summary(Results)
+# https://www.benjaminbell.co.uk/2018/02/principal-components-analysis-pca-in-r.html
 p = fviz_pca_biplot(Results, repel=TRUE,  pointshape=21, col.var="red", arrowsize=0.6, labelsize=5)
 p
 ```
