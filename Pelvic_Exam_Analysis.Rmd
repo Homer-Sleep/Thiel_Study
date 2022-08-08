@@ -1,8 +1,8 @@
 ---
 title: "Pelvic_Exam_Analysis"
-output: pdf_document
+output: html_document
 ---
-```{r, echo=FALSE, message=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 library(plyr)
 # library(papeR)
 library(dplyr)
@@ -30,6 +30,8 @@ library(psych)
 # library(sjPlot)
 # library(lsmeans)
 library(factoextra)
+library(PerformanceAnalytics)
+
 
 
 
@@ -86,6 +88,8 @@ summary(Survey.dt)
 # Set 0's to NA's
 Zeros = Survey.dt == 0
 Survey.dt[Zeros] = NA
+
+chart.Correlation(Survey.dt[,-1], histogram = TRUE, method = "pearson")
 ```
 
 ## Pre and Post differences
@@ -181,16 +185,16 @@ p
 Survey.dt = Survey.dt[complete.cases(Survey.dt),]
 # summary(Survey.dt)
 #remove excess text from col names to clean up PCA biplot:
-Survey.dt.Num = Survey.dt
+Survey.dt_Num = copy(Survey.dt)
 # colnames(Survey.dt.Num)
 new_colnames = c('ID', 'Q1', 'Q2', 'Q3', 'Q4',
                  'Q5', 'Q6', 'Q7', 'Q8',
                  'Q9', 'Q10', 'Q11', 'Q12', 
                  'Q13', 'Q14')
-setnames(Survey.dt.Num, new_colnames)
+setnames(Survey.dt_Num, new_colnames)
 
 
-Results = prcomp(Survey.dt.Num[-c(1,62),-1], center = TRUE, scale = TRUE) # removed 1 and 62 as did not prefer a type
+Results = prcomp(Survey.dt_Num[-c(1,62),-1], center = TRUE, scale = TRUE) # removed 1 and 62 as did not prefer a type
 Results$rotation = -1 * Results$rotation
 Results$x = -1 * Results$x
 summary(Results)
@@ -200,25 +204,24 @@ p
 ```
 
 Principal Component Analysis:
-This approach looks at different components that explain the variance in the data. The first component explains the most amount of variance by spreading the data across a single line, x-axis, with the second component (2nd most amount of variance) on the y-axis. We see that the first component (PC1) explains 25% of the variance and PC2 explains 13%. 
+This approach looks at different components that explain the variance in the data. The first component explains the most amount of variance by spreading the data across a single line, i.e, the x-axis, with the second component (2nd most amount of variance) on the y-axis. We see that the first component (Dim1) explains 25% of the variance and Dim2 explains 13%. 
 
 Interpretation: 
-These questions are grouped together: 
+I will interpret the plot by how the questions are grouped together and the location by referencing the numbers of a clock face: 
 
-At seven o'clock, negative for PC1 and PC2
-12 - I gained more knowledge about female pelvic exams using (thiel, TT, neither)
-13 - I feel most prepared to perform a female pelvic exam after practicing on 
-14 - I feel most confident to perform a female pelvic exam after practicing on
+At 7 o'clock, negative for Dim1 and Dim2. 
+Q_12 - I gained more knowledge about female pelvic exams using (thiel, TT, neither)
+Q_13 - I feel most prepared to perform a female pelvic exam after practicing on 
+Q_14 - I feel most confident to perform a female pelvic exam after practicing on
 
 These questions are grouped together as they show preference, mostly for the thiel surgical donor
 
-At five o'clock, positive for PC1 and negative for PC2
-1 - I have previous experience of pelvic exam on live patient
-3 - felt prepared to perform the female pelvic exam required in the upcoming third-year rotations, prior to the Doctoring I course session
-4 - I felt confident performing a female pelvic exam prior to participating in this Doctoring I course session.
+At 10 o'clock, positive for PC1 and negative for PC2
+Q_1 - I have previous experience of pelvic exam on live patient
+Q_3 - felt prepared to perform the female pelvic exam required in the upcoming third-year rotations, prior to the Doctoring I course session
+Q_4 - I felt confident performing a female pelvic exam prior to participating in this Doctoring I course session.
 and some extent 2 - I have previous experience performing simulated female pelvic exams (thiel or TT). 
 Shows that previous experience with a live patient was grouped with being prepared and having confidence. 
-
 
 
 
@@ -228,11 +231,11 @@ Shows that previous experience with a live patient was grouped with being prepar
 ### Regress on Post Confidence
 See what variables predict post confidence
 
-```{r}
+```{r, results='asis'}
 
-Confidence.lm = lme(Q9_Post.More.Confident ~ Q1_Exp.Live.Patient+ Q2_Exp.Simulation+ Q3_Pre.Feel.Prepared+ Q4_Pre.Confidence+ 
+Confidence.lm = lme(Q9_Post.More.Confident ~ Q1_Exp.Live.Patient+ Q2_Exp.Simulation+ Q3_Pre.Feel.Prepared+ Q4_Pre.Confidence+
                       Q5_Simulation.Requirement+ Q6_Simulation.Con.Requirement + Q7_Learned.PE + Q8_Skills.Retained.Utlized +
-                      Q10_Thiel.Realism + Q11_Task.Trainer.Realism + Q12_Type.Gained.Knowledge + Q13_Type.Feel.Prepared + 
+                      Q10_Thiel.Realism + Q11_Task.Trainer.Realism + Q12_Type.Gained.Knowledge + Q13_Type.Feel.Prepared +
                       Q14_Type.Feel.Confident, random =~ 1|ID, data = Survey.dt[complete.cases(Survey.dt)])
 # make table output:
 tTable = summary(Confidence.lm)[['tTable']] # retrieve tTable from linear model lme()
