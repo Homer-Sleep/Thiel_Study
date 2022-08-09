@@ -71,11 +71,11 @@ knitr::opts_chunk$set(echo = FALSE)
 
 5. Simulating (on soft-embalmed surgical donor or female pelvic low fidelity task trainer) performing a female pelvic exam is an appropriate teaching method to prepare medical students for patient care. 
 
-6. Simulating (on soft-embalmed surgical donor or female pelvic low fidelity task trainer) performing a female pelvic exam should continue to be a required part of the Dorctoring I course. 
+6. Simulating (on soft-embalmed surgical donor or female pelvic low fidelity task trainer) performing a female pelvic exam should continue to be a required part of the Doctoring I course. 
 
 7. I learned how to perform a female pelvic exam by participating in this Doctoring I course session. 
 
-8. I expected the procedural and communication skills learned in the Doctoring I course to be retained and utilized in future experiences. 
+8. I expect the procedural and communication skills learned in the Doctoring I course to be retained and utilized in future experiences. 
 
 9. Following the Doctoring I course session, I feel more confident performing a female pelvic exam on a live patient. 
 
@@ -117,6 +117,7 @@ Survey.dt[Zeros] = NA
 ```
 
 ## Pre and Post differences
+##### Q 4 = Pre and Q 9 = Post scores
 
 ```{r, warning=FALSE}
 # Confidence data.table
@@ -138,7 +139,8 @@ Results
 #plot with results:
 p = ggplot(Confidence.dt, aes(x=Group, y=Score,  fill = Group)) +
     geom_boxplot() +
-      scale_fill_manual(values = c('navyblue', 'gold'))+
+    scale_fill_manual(values = c('blue3', 'gold'))+
+    ylim(1, 5)+
     labs(title = paste('Confident Performing Pelvic Exam - Pre and Post'))+ 
     annotate('text', x = 1, y = -.05,  fontface = 'bold', label = means[Group == 'Pre']$Score)+
     annotate('text', x = 2, y = -.05,  fontface = 'bold', label = means[Group == 'Post']$Score)+
@@ -147,11 +149,51 @@ p = ggplot(Confidence.dt, aes(x=Group, y=Score,  fill = Group)) +
 p = p + ylab('Disagree       --        Agree')
 p = p + plot_finish
 p
+
+p = p + geom_jitter(width = 0.25)
+p
+```
+
+##### Q 3 = Pre and Q 9 = Post scores
+
+```{r, warning=FALSE}
+# Confidence data.table
+Confidence.dt = data.table(Group = c(rep('Pre', nrow(Survey.dt)), rep('Post', nrow(Survey.dt))), 
+                           Score = c(Survey.dt$Q3_Pre.Feel.Prepared, Survey.dt$Q9_Post.More.Confident))
+Confidence.dt$Group = factor(Confidence.dt$Group, levels = c('Pre', 'Post'))
+# Means
+  means = data.table(aggregate(Score ~ Group, Confidence.dt, mean))
+  # change order
+  means = means[c(2,1)]
+  means$Score = round(means$Score, digits = 2)
+
+#t.test
+Results = t.test(Confidence.dt[Group == 'Pre']$Score, Confidence.dt[Group == 'Post']$Score, paired = TRUE)
+#view results
+Results
+
+
+#plot with results:
+p = ggplot(Confidence.dt, aes(x=Group, y=Score,  fill = Group)) +
+    geom_boxplot() +
+    scale_fill_manual(values = c('blue3', 'gold'))+
+    ylim(1, 5)+
+    labs(title = paste('Confident Performing Pelvic Exam - Pre and Post'))+ 
+    annotate('text', x = 1, y = -.05,  fontface = 'bold', label = means[Group == 'Pre']$Score)+
+    annotate('text', x = 2, y = -.05,  fontface = 'bold', label = means[Group == 'Post']$Score)+
+    annotate('text', x = 1.5, y = -.05,  fontface = 'bold', label = print('* p < 0.001'))
+    
+p = p + ylab('Disagree       --        Agree')
+p = p + plot_finish
+p
+
+p = p + geom_jitter(width = 0.25)
+p
 ```
 
 ## Pre and Post differences Grouped by type of training preferred 
 
-```{r}
+```{r, warning=FALSE}
 # Confidence data.table
 Type.dt = data.table(Group = c(rep('Pre', nrow(Survey.dt)), rep('Post', nrow(Survey.dt))), 
                            Score = c(Survey.dt$Q4_Pre.Confidence, Survey.dt$Q9_Post.More.Confident), 
@@ -188,7 +230,8 @@ TT.Results
 #plot with results:
 p = ggplot(Type.dt[Type != 'Neither'], aes(x=Group_Type, y=Score,  fill = Group_Type)) +
     geom_boxplot() +
-      scale_fill_manual(values = rep(c('navyblue', 'gold'),2))+
+    ylim(1,5)+
+      scale_fill_manual(values = rep(c('blue3', 'gold'),2))+
     labs(title = paste('Confident Performing Pelvic Exam by Prefered Method'))+ 
     annotate('text', x = 1, y = -.05,  fontface = 'bold', label = means[Group_Type == 'Pre.Thiel']$Score)+
     annotate('text', x = 2, y = -.05,  fontface = 'bold', label = means[Group_Type == 'Post.Thiel']$Score)+
@@ -201,10 +244,13 @@ p = ggplot(Type.dt[Type != 'Neither'], aes(x=Group_Type, y=Score,  fill = Group_
 p = p + ylab('Disagree     --     Agree')+ xlab('')
 p = p + plot_finish
 p
+
+p = p + geom_jitter(width = 0.25)
+p
 ```
 
-### PCA of variables
-```{r, warning=FALSE}
+## Principal Component Analysis:
+```{r, warning=FALSE, fig.height=9, fig.width=9}
 ################### Consider making a difference measure of confidence post - pre, 4 and 9, or just 9 considering the wording. 
 Survey.dt = Survey.dt[complete.cases(Survey.dt),]
 # summary(Survey.dt)
@@ -226,34 +272,72 @@ summary(Results)
 p = fviz_pca_biplot(Results, repel=TRUE,  pointshape=21, col.var="red", arrowsize=0.6, labelsize=5)
 p
 
-chart.Correlation(Survey.dt_Num[,-1], histogram = TRUE, method = "pearson")
 ```
 
-Principal Component Analysis:
 This approach looks at different components that explain the variance in the data. The first component explains the most amount of variance by spreading the data across a single line, i.e, the x-axis, with the second component (2nd most amount of variance) on the y-axis. We see that the first component (PC1 in table, Dim1 in figure) explains 25% of the variance and the second component explains 13%. 
 
-Interpretation: 
+### Interpretation: 
 I will interpret the plot by how the questions are grouped together and the location by referencing the numbers of a clock face: 
 
-At 2 o'clock - positive Dim1 and Dim2:
-Q_8, Q_9, Q_10, Q_11
+#### At 2 o'clock - positive Dim1 and Dim2:
+Q_8. I expect the procedural and communication skills learned in the Doctoring I course to be retained and utilized in future experiences. 
+Q_9. Following the Doctoring I course session, I feel more confident performing a female pelvic exam on a live patient. 
+Q_10. The female pelvic exam performed on a soft-embalmed surgical donor felt realistic. 
+Q_11. The female pelvic exam performed on a low-fidelity task trainer felt realistic. 
 
-At 7 o'clock, negative for Dim1 and Dim2. 
+This is interesting as Question 8 deals with expectations of skills from the doctoring course to be used in the future, while question 9 address confidence of performing the pelvic exam post the doctoring course. Maybe this shows how students that retain skills from the course also have higher confidence, e.g., student engagement results in higher confidence. Questions 10 and 11 are grouped as they show higher confidence when either the thiel or task trainer are viewed as realistic. 
+
+#### At 4 o'clock, positive for Dim1 and negative Dim2:
+
+Q_5. Simulating (on soft-embalmed surgical donor or female pelvic low fidelity task trainer) performing a female pelvic exam is an appropriate teaching method to prepare medical students for patient care. 
+Q_6. Simulating (on soft-embalmed surgical donor or female pelvic low fidelity task trainer) performing a female pelvic exam should continue to be a required part of the Doctoring I course. 
+Q_7. I learned how to perform a female pelvic exam by participating in this Doctoring I course session. 
+
+This group makes sense as question 5 and question 6 address the level of appropriateness of pelvic exam training and the training's value in the course. The inclusion of question 7 in this group makes sense as those that see it as appropriate and having value would also learn from this training. 
+
+Note that the above questions (5 - 11) are mainly on the x-axis, meaning these questions define the first principal component and explain 25% of the variance in the survey. These questions are more 'important' to explaining variance that questions that are mainly on the y-axis. 
+
+#### At 7 o'clock, negative for Dim1 and Dim2. 
 Q_12 - I gained more knowledge about female pelvic exams using (thiel, TT, neither)
 Q_13 - I feel most prepared to perform a female pelvic exam after practicing on 
 Q_14 - I feel most confident to perform a female pelvic exam after practicing on
 
 These questions are grouped together as they show preference, mostly for the thiel surgical donor
 
-At 10 o'clock, positive for PC1 and negative for PC2
+#### At 10 o'clock, positive for Dim1 and negative for Dim2
 Q_1 - I have previous experience of pelvic exam on live patient
 Q_3 - felt prepared to perform the female pelvic exam required in the upcoming third-year rotations, prior to the Doctoring I course session
 Q_4 - I felt confident performing a female pelvic exam prior to participating in this Doctoring I course session.
-and some extent 2 - I have previous experience performing simulated female pelvic exams (thiel or TT). 
+
 Shows that previous experience with a live patient was grouped with being prepared and having confidence. 
+______________________________________________________________________
+ - look at histograms of each before interpretation...
+________________________________________________________________________
+
+In conclusion, the majority of the variance was not in the preference or the confidence in performing a pelvic exam (only 13%). This makes sense as most students did not have previous experience and preferred the thiel embalmed training (e.g., low variance). The majority of the variance was around 
+
+### Correlation plots
+
+```{r, warning=FALSE, fig.height=7, fig.width=9}
+# pairs.panels(Survey.dt_Num[,-1],
+#              smooth = TRUE,      # If TRUE, draws loess smooths
+#              scale = FALSE,      # If TRUE, scales the correlation text font
+#              density = TRUE,     # If TRUE, adds density plots and histograms
+#              ellipses = TRUE,    # If TRUE, draws ellipses
+#              method = "pearson", # Correlation method (also "spearman" or "kendall")
+#              pch = 21,           # pch symbol
+#              lm = FALSE,         # If TRUE, plots linear fit rather than the LOESS (smoothed) fit
+#              cor = TRUE,         # If TRUE, reports correlations
+#              jiggle = FALSE,     # If TRUE, data points are jittered
+#              factor = 2,         # Jittering factor
+#              hist.col = 4,       # Histograms color
+#              stars = TRUE,       # If TRUE, adds significance level with stars
+#              ci = TRUE)          # If TRUE, adds confidence intervals
 
 
+chart.Correlation(Survey.dt_Num[,-1], histogram = TRUE, method = "pearson")
 
+```
 
 
 
