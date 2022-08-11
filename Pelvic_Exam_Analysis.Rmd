@@ -30,7 +30,8 @@ library(psych)
 # library(sjPlot)
 # library(lsmeans)
 library(factoextra)
-library(PerformanceAnalytics)
+# library(PerformanceAnalytics)
+library(Hmisc)
 
 
 
@@ -113,8 +114,26 @@ summary(Survey.dt)
 Zeros = Survey.dt == 0
 Survey.dt[Zeros] = NA
 
+#remove excess text from col names to clean up PCA biplot:
+Survey.dt_Num = copy(Survey.dt)
+# colnames(Survey.dt.Num)
+new_colnames = c('ID', 'Q1', 'Q2', 'Q3', 'Q4',
+                 'Q5', 'Q6', 'Q7', 'Q8',
+                 'Q9', 'Q10', 'Q11', 'Q12', 
+                 'Q13', 'Q14')
+setnames(Survey.dt_Num, new_colnames)
 
 ```
+
+## Histograms and correlations of data
+
+```{r, warning=FALSE, fig.height=7, fig.width=9}
+hist.data.frame(Survey.dt[,-1])
+
+chart.Correlation(Survey.dt_Num[,-1], histogram = FALSE, method = "pearson")
+
+```
+
 
 ## Pre and Post differences
 ##### Q 4 = Pre and Q 9 = Post scores
@@ -253,16 +272,6 @@ p
 ```{r, warning=FALSE, fig.height=9, fig.width=9}
 ################### Consider making a difference measure of confidence post - pre, 4 and 9, or just 9 considering the wording. 
 Survey.dt = Survey.dt[complete.cases(Survey.dt),]
-# summary(Survey.dt)
-#remove excess text from col names to clean up PCA biplot:
-Survey.dt_Num = copy(Survey.dt)
-# colnames(Survey.dt.Num)
-new_colnames = c('ID', 'Q1', 'Q2', 'Q3', 'Q4',
-                 'Q5', 'Q6', 'Q7', 'Q8',
-                 'Q9', 'Q10', 'Q11', 'Q12', 
-                 'Q13', 'Q14')
-setnames(Survey.dt_Num, new_colnames)
-
 
 Results = prcomp(Survey.dt_Num[-c(1,62),-1], center = TRUE, scale = TRUE) # removed 1 and 62 as did not prefer a type
 Results$rotation = -1 * Results$rotation
@@ -315,30 +324,6 @@ ______________________________________________________________________
 ________________________________________________________________________
 
 In conclusion, the majority of the variance was not in the preference or the confidence in performing a pelvic exam (only 13%). This makes sense as most students did not have previous experience and preferred the thiel embalmed training (e.g., low variance). The majority of the variance was around 
-
-### Correlation plots
-
-```{r, warning=FALSE, fig.height=7, fig.width=9}
-# pairs.panels(Survey.dt_Num[,-1],
-#              smooth = TRUE,      # If TRUE, draws loess smooths
-#              scale = FALSE,      # If TRUE, scales the correlation text font
-#              density = TRUE,     # If TRUE, adds density plots and histograms
-#              ellipses = TRUE,    # If TRUE, draws ellipses
-#              method = "pearson", # Correlation method (also "spearman" or "kendall")
-#              pch = 21,           # pch symbol
-#              lm = FALSE,         # If TRUE, plots linear fit rather than the LOESS (smoothed) fit
-#              cor = TRUE,         # If TRUE, reports correlations
-#              jiggle = FALSE,     # If TRUE, data points are jittered
-#              factor = 2,         # Jittering factor
-#              hist.col = 4,       # Histograms color
-#              stars = TRUE,       # If TRUE, adds significance level with stars
-#              ci = TRUE)          # If TRUE, adds confidence intervals
-
-
-chart.Correlation(Survey.dt_Num[,-1], histogram = TRUE, method = "pearson")
-
-```
-
 
 
 ### Regress on Post Confidence
