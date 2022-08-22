@@ -30,7 +30,7 @@ library(psych)
 # library(sjPlot)
 # library(lsmeans)
 library(factoextra)
-# library(PerformanceAnalytics)
+library(PerformanceAnalytics)
 library(Hmisc)
 
 
@@ -62,11 +62,13 @@ theme(legend.position="none")+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
+## Survey Questions:
+
 1. I have previous experience performing female pelvic exams on live patients
 
 2. I have previous Experience performing simulated female pelvic exams (on soft-embalmed surgical donors or female pelvic low fidelity task trainer)
 
-3. I felt prepared tp perform the female pelvic exam required in the upcoming third-year rotations, prior to the Doctoring I course session. 
+3. I felt prepared to perform the female pelvic exam required in the upcoming third-year rotations, prior to the Doctoring I course session. 
 
 4. I felt confident performing a female pelvic exam prior to participation in this Doctoring I course session. 
 
@@ -109,10 +111,11 @@ new_colnames = c('ID', 'Q1_Exp.Live.Patient', 'Q2_Exp.Simulation', 'Q3_Pre.Feel.
                  'Q9_Post.More.Confident', 'Q10_Thiel.Realism', 'Q11_Task.Trainer.Realism', 'Q12_Type.Gained.Knowledge', 
                  'Q13_Type.Feel.Prepared', 'Q14_Type.Feel.Confident')
 setnames(Survey.dt, new_colnames)
-summary(Survey.dt)
+# summary(Survey.dt)
 # Set 0's to NA's
 Zeros = Survey.dt == 0
 Survey.dt[Zeros] = NA
+Survey.dt = Survey.dt[complete.cases(Survey.dt),] # removed last row of NA's
 
 #remove excess text from col names to clean up PCA biplot:
 Survey.dt_Num = copy(Survey.dt)
@@ -160,10 +163,10 @@ p = ggplot(Confidence.dt, aes(x=Group, y=Score,  fill = Group)) +
     geom_boxplot() +
     scale_fill_manual(values = c('blue3', 'gold'))+
     ylim(1, 5)+
-    labs(title = paste('Confident Performing Pelvic Exam - Pre and Post'))+ 
+    labs(title = paste('Confident Performing Pelvic Exam - Pre Q4 and Post Q9'))+ 
     annotate('text', x = 1, y = -.05,  fontface = 'bold', label = means[Group == 'Pre']$Score)+
     annotate('text', x = 2, y = -.05,  fontface = 'bold', label = means[Group == 'Post']$Score)+
-    annotate('text', x = 1.5, y = -.05,  fontface = 'bold', label = print('* p < 0.001'))
+    annotate('text', x = 1.53, y = 1,  fontface = 'bold', label = print('**p < 0.001'))
     
 p = p + ylab('Disagree       --        Agree')
 p = p + plot_finish
@@ -172,6 +175,10 @@ p
 p = p + geom_jitter(width = 0.25)
 p
 ```
+
+These plots are the same data, just with and without individual data points. 
+
+We see there is a significant increase in Confidence when comparing Question 4 to Question 9 (*t* (67) = 18.69, *p* <0.001). This shows that the pelvic exam training improves student confidence using both task trainer and soft-embalmed approaches. 
 
 ##### Q 3 = Pre and Q 9 = Post scores
 
@@ -197,10 +204,10 @@ p = ggplot(Confidence.dt, aes(x=Group, y=Score,  fill = Group)) +
     geom_boxplot() +
     scale_fill_manual(values = c('blue3', 'gold'))+
     ylim(1, 5)+
-    labs(title = paste('Confident Performing Pelvic Exam - Pre and Post'))+ 
+    labs(title = paste('Confident Performing Pelvic Exam - Pre Q3 and Post Q9'))+ 
     annotate('text', x = 1, y = -.05,  fontface = 'bold', label = means[Group == 'Pre']$Score)+
     annotate('text', x = 2, y = -.05,  fontface = 'bold', label = means[Group == 'Post']$Score)+
-    annotate('text', x = 1.5, y = -.05,  fontface = 'bold', label = print('* p < 0.001'))
+    annotate('text', x = 1.53, y = 1,  fontface = 'bold', label = print('**p < 0.001'))
     
 p = p + ylab('Disagree       --        Agree')
 p = p + plot_finish
@@ -209,6 +216,10 @@ p
 p = p + geom_jitter(width = 0.25)
 p
 ```
+
+These plots are the same post data (Q9) with different pre data Q3. 
+
+We see there is a significant increase in Confidence when comparing Question 3 to Question 9 (*t* (67) = 13.71, *p* <0.001). This shows that the pelvic exam training improves student confidence using both task trainer and soft-embalmed approaches. 
 
 ## Pre and Post differences Grouped by type of training preferred 
 
@@ -249,15 +260,15 @@ TT.Results
 #plot with results:
 p = ggplot(Type.dt[Type != 'Neither'], aes(x=Group_Type, y=Score,  fill = Group_Type)) +
     geom_boxplot() +
-    ylim(1,5)+
+    ylim(0,5)+
       scale_fill_manual(values = rep(c('blue3', 'gold'),2))+
     labs(title = paste('Confident Performing Pelvic Exam by Prefered Method'))+ 
-    annotate('text', x = 1, y = -.05,  fontface = 'bold', label = means[Group_Type == 'Pre.Thiel']$Score)+
-    annotate('text', x = 2, y = -.05,  fontface = 'bold', label = means[Group_Type == 'Post.Thiel']$Score)+
-    annotate('text', x = 1.5, y = .05,  fontface = 'bold', label = ('p < 0.001*\nn = 64'))+
+    annotate('text', x = 1, y = 0,  fontface = 'bold', label = means[Group_Type == 'Pre.Thiel']$Score)+
+    annotate('text', x = 2, y = 0,  fontface = 'bold', label = means[Group_Type == 'Post.Thiel']$Score)+
+    annotate('text', x = 1.5, y = .05,  fontface = 'bold', label = ('**p < 0.001\nn = 64'))+
 
-    annotate('text', x = 3, y = -.05,  fontface = 'bold', label = means[Group_Type == 'Pre.TT']$Score)+
-    annotate('text', x = 4, y = -.05,  fontface = 'bold', label = means[Group_Type == 'Post.TT']$Score)+
+    annotate('text', x = 3, y = 0,  fontface = 'bold', label = means[Group_Type == 'Pre.TT']$Score)+
+    annotate('text', x = 4, y = 0,  fontface = 'bold', label = means[Group_Type == 'Post.TT']$Score)+
     annotate('text', x = 3.5, y = .05,  fontface = 'bold', label = ('p = 0.1\nn = 4'))
     
 p = p + ylab('Disagree     --     Agree')+ xlab('')
@@ -268,10 +279,11 @@ p = p + geom_jitter(width = 0.25)
 p
 ```
 
+These plots are organized by which method was preferred by the student (Q 14). We see that the vast majority (94%) picked the soft-embalmed (Thiel) over the task trainer (TT), 64 to 4 respectively. We can also see there was a significant increase in pre (Q4) and post (Q9) confidence in the soft-embalmed preference group. The task trainer group did not have enough data points to infer statistical findings; however, the soft-embalmed group did have a larger post confidence average score (4.45) than the task trainer group (3.8). 
+
 ## Principal Component Analysis:
 ```{r, warning=FALSE, fig.height=9, fig.width=9}
 ################### Consider making a difference measure of confidence post - pre, 4 and 9, or just 9 considering the wording. 
-Survey.dt = Survey.dt[complete.cases(Survey.dt),]
 
 Results = prcomp(Survey.dt_Num[-c(1,62),-1], center = TRUE, scale = TRUE) # removed 1 and 62 as did not prefer a type
 Results$rotation = -1 * Results$rotation
@@ -294,7 +306,7 @@ Q_9. Following the Doctoring I course session, I feel more confident performing 
 Q_10. The female pelvic exam performed on a soft-embalmed surgical donor felt realistic. 
 Q_11. The female pelvic exam performed on a low-fidelity task trainer felt realistic. 
 
-This is interesting as Question 8 deals with expectations of skills from the doctoring course to be used in the future, while question 9 address confidence of performing the pelvic exam post the doctoring course. Maybe this shows how students that retain skills from the course also have higher confidence, e.g., student engagement results in higher confidence. Questions 10 and 11 are grouped as they show higher confidence when either the thiel or task trainer are viewed as realistic. 
+This is interesting as Question 8 deals with expectations of skills from the doctoring course to be used in the future, while question 9 address confidence of performing the pelvic exam post the doctoring course. Maybe this shows how students that retain skills from the course also have higher confidence, e.g., student engagement results in higher confidence. Questions 10 and 11 are grouped as students show higher confidence when either the thiel or task trainer are viewed as realistic. 
 
 #### At 4 o'clock, positive for Dim1 and negative Dim2:
 
@@ -319,11 +331,8 @@ Q_3 - felt prepared to perform the female pelvic exam required in the upcoming t
 Q_4 - I felt confident performing a female pelvic exam prior to participating in this Doctoring I course session.
 
 Shows that previous experience with a live patient was grouped with being prepared and having confidence. 
-______________________________________________________________________
- - look at histograms of each before interpretation...
-________________________________________________________________________
 
-In conclusion, the majority of the variance was not in the preference or the confidence in performing a pelvic exam (only 13%). This makes sense as most students did not have previous experience and preferred the thiel embalmed training (e.g., low variance). The majority of the variance was around 
+In conclusion, the majority of the variance was explained in part by the confidence in performing a pelvic exam (x-axis, 25%). I believe that the y-axis has mostly to do with preference of training approach, either soft-embalmed or task trainer.  
 
 
 ### Regress on Post Confidence
@@ -344,3 +353,4 @@ tTable = summary(Confidence.lm)[['tTable']] # retrieve tTable from linear model 
   row_spec(0:nrow(tTable),color = "black")
 ```
 
+This regression of all questions on question 9, post confidence, found that question 8 (I expect the procedural and communication skills learned in the Doctoring I course to be retained and utilized in future experiences) was a significant predictor of post confidence. Similar to the PCA, this suggests that student engagement results in higher confidence. 
